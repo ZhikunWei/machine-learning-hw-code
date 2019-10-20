@@ -1,4 +1,6 @@
 import numpy as np
+from sklearn.metrics import confusion_matrix
+import pickle
 
 
 def readFile(filename):
@@ -28,27 +30,45 @@ class IRLS:
     def predict(self, X):
         return 1 / (1 + np.e ** (-np.dot(X, self.weight)))
 
+    def getConfusionMat(self, mu, y):
+        mu = [0 if mui < 0.5 else 1 for mui in mu]
+        c = confusion_matrix(y, mu)
+        return c
+        tp, fp, fn, tn = c[0, 0], c[1, 0], c[0, 1], c[1, 1]
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        acc = (tp + tn) / (tp + fp + fn + tn)
+
     def update(self, X, y):
         mu = self.predict(X)
         R = np.zeros((mu.shape[0], mu.shape[0]))
         for i in range(mu.shape[0]):
             R[i, i] = mu[i] * (1 - mu[i])
         p1 = np.linalg.pinv(-np.dot(np.dot(np.transpose(X), R), X) - self.lam * np.eye(124))
-        p2 = self.lam * self.weight + np.dot(np.transpose(X), y-mu)
+        p2 = -self.lam * self.weight + np.dot(np.transpose(X), y - mu)
         self.weight = self.weight - np.dot(p1, p2)
-        lw = 0
-        for i in range(X.shape[0]):
-            s = np.dot(self.weight, X[i, :])
-            lw += y[i] * s - np.log(1 + np.exp(s))
-        loss = -0.5 * np.sum(np.square(self.weight)) + lw
-        print(loss)
 
+        return np.sqrt(np.sum(np.square(self.weight)))
+
+    def validation(self, X, y):
+        mu = self.predict(X)
+        c = self.getConfusionMat(mu, y)
+        return c
 
 
 if __name__ == '__main__':
     train_x, train_y = readFile('a9a/a9a')
     test_x, test_y = readFile('a9a/a9a.t')
 
-    irls = IRLS()
-    for i in range(100):
-        irls.update(train_x, train_y)
+    for l in [0, 0.001, 0.01, 0.1, 1, 10, 100, 1000]:
+        irls = IRLS(l)
+        rec = {'l2norm': [], 'train_c': [], 'test_c': []}
+        for i in range(30):
+            l2norm = irls.update(train_x, train_y)
+            train_c = irls.validation(train_x, train_y)
+            test_c = irls.validation(test_x, test_y)
+            rec['l2norm'].append(l2norm)
+            rec['train_c'].append(train_c)
+            rec['test_c'].append(test_c)
+        with open('figure_data/lam' + str(l) + '.pkl', 'wb') as f:
+            pickle.dump(rec, f)
