@@ -64,11 +64,13 @@ if __name__ == '__main__':
         irls = IRLS(l)
         rec = {'l2norm': [], 'train_c': [], 'test_c': []}
         for i in range(30):
-            l2norm = irls.update(train_x, train_y)
+            print('lambda:', l, '  epoch:', i)
+            l2norm = np.sqrt(np.sum(np.square(irls.weight)))
             train_c = irls.validation(train_x, train_y)
             test_c = irls.validation(test_x, test_y)
             rec['l2norm'].append(l2norm)
             rec['train_c'].append(train_c)
             rec['test_c'].append(test_c)
+            irls.update(train_x, train_y)
         with open('figure_data/lam' + str(l) + '.pkl', 'wb') as f:
             pickle.dump(rec, f)
