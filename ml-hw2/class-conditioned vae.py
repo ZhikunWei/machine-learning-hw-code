@@ -119,7 +119,7 @@ def main():
     infer_op = optimizer.minimize(cost)
 
     # Random generation
-    y_observe = tf.placeholder(tf.float32, shape=[None, 10], name="y_obs")
+    y_observe = tf.placeholder(tf.float32, shape=[None, 10], name="y_observe")
     x_gen = tf.reshape(model.observe(y=y_observe)["x_mean"], [-1, 28, 28, 1])
 
     # Define training/evaluation parameters
@@ -179,7 +179,7 @@ def main():
                 y_index = np.repeat(np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]), 10)
                 y_index = np.eye(10)[y_index.reshape(-1)]
                 images = sess.run(x_gen, feed_dict={y_observe: y_index, y: y_index, n: 100, n_particles: 1})
-                name = os.path.join(result_path, "vae.epoch.{}.png".format(epoch))
+                name = os.path.join(result_path, "c-vae.epoch.{}.png".format(epoch))
                 save_image_collections(images, name)
 
 
