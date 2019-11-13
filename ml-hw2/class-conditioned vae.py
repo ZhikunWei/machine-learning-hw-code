@@ -135,7 +135,6 @@ def main():
     # Run the inference
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-
         for epoch in range(1, epochs + 1):
             time_epoch = -time.time()
             np.random.shuffle(x_train)
