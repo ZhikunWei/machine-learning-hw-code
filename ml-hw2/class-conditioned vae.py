@@ -99,8 +99,8 @@ def main():
     z_dim = 40
     n_particles = tf.placeholder(tf.int32, shape=[], name="n_particles")
     x_input = tf.placeholder(tf.float32, shape=[None, x_dim], name="x")
-    y = tf.placeholder(tf.float32, shape=[None, y_dim], name="y")
     x = tf.cast(tf.less(tf.random_uniform(tf.shape(x_input)), x_input), tf.int32)
+    y = tf.placeholder(tf.float32, shape=[None, 10], name="y")
     n = tf.placeholder(tf.int32, shape=[], name="n")
 
     model = build_gen(x_dim, z_dim, y, n, n_particles)
@@ -124,11 +124,11 @@ def main():
 
     # Define training/evaluation parameters
     epochs = 3000
-    batch_size = 16
+    batch_size = 128
     iters = x_train.shape[0] // batch_size
     save_freq = 10
     test_freq = 10
-    test_batch_size = 20
+    test_batch_size = 50
     test_iters = x_test.shape[0] // test_batch_size
     result_path = "results/c-vae"
 
@@ -137,7 +137,6 @@ def main():
         sess.run(tf.global_variables_initializer())
         for epoch in range(1, epochs + 1):
             time_epoch = -time.time()
-            np.random.shuffle(x_train)
             lbs = []
             for t in range(iters):
                 x_batch = x_train[t * batch_size:(t + 1) * batch_size]
